@@ -1,9 +1,8 @@
-package com.example.indoornavi;
+package com.example.MartBee;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -19,6 +18,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     private static final String TAG = "ListAdapter";
     ArrayList<ListNote> items = new ArrayList<>();
 
+    // xml 적용
     @NonNull
     @Override
     public ListAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -28,6 +28,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         return new ViewHolder(itemView);
     }
 
+    // 각 항목에 들어갈 데이터
     @Override
     public void onBindViewHolder(@NonNull ListAdapter.ViewHolder holder, int position) {
         ListNote item = items.get(position);
@@ -35,6 +36,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         holder.setLayout();
     }
 
+    // 화면에 보여줄 데이터 개수
     @Override
     public int getItemCount() {
         return items.size();
@@ -46,12 +48,13 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         CheckBox checkBox;
         Button deleteBtn;
 
+        // 뷰홀더 객체에 저장되어 화면에 표시
         public ViewHolder(View itemView) {
             super(itemView);
 
-            layout = itemView.findViewById(R.id.layoutList);
-            checkBox = itemView.findViewById(R.id.listCheckBox);
-            deleteBtn = itemView.findViewById(R.id.deleteListBtn);
+            this.layout = itemView.findViewById(R.id.layoutList);
+            this.checkBox = itemView.findViewById(R.id.listCheckBox);
+            this.deleteBtn = itemView.findViewById(R.id.deleteListBtn);
 
             deleteBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -60,7 +63,16 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
                     deleteItem(list);
                     Toast.makeText(v.getContext(), "삭제되었습니다.",Toast.LENGTH_SHORT).show();
                 }
-            private void deleteItem(String item) {        }
+            private void deleteItem(String item) {
+
+                }
+            });
+
+            checkBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(v.getContext(), "체크 완료", Toast.LENGTH_SHORT).show();
+                }
             });
         }
         public void setItem(ListNote item) {

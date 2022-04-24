@@ -1,9 +1,7 @@
-package com.example.indoornavi;
+package com.example.MartBee;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -12,7 +10,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,13 +31,13 @@ public class MainActivity extends AppCompatActivity {
         editSearch = (EditText) findViewById(R.id.nameSearch);
         listView = (ListView) findViewById(R.id.listView);
 
-        // 리스트를 생성한다.
+        // 리스트를 생성
         list = new ArrayList<String>();
 
-        // 검색에 사용할 데이터을 미리 저장한다.
+        // 검색에 사용할 데이터을 미리 저장
         settingList();
 
-        // 리스트의 모든 데이터를 arraylist에 복사한다.// list 복사본을 만든다.
+        // 리스트의 모든 데이터를 arraylist에 복사, list 복사본 생성
         arraylist = new ArrayList<String>();
         arraylist.addAll(list);
 

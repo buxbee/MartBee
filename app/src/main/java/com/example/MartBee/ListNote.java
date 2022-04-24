@@ -1,4 +1,4 @@
-package com.example.indoornavi;
+package com.example.MartBee;
 
 public class ListNote {
 
