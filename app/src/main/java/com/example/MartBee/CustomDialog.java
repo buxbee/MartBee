@@ -9,6 +9,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
@@ -20,6 +21,8 @@ public class CustomDialog extends Dialog{
 
     private Context context;
     private CustomDialogClickListener customDialogClickListener;
+    private RadioGroup radioGroup;
+    String floor, startPoint;
     Button yes, no;
 
     public CustomDialog(@NonNull Context context, CustomDialogClickListener customDialogClickListener) {
@@ -33,7 +36,8 @@ public class CustomDialog extends Dialog{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.custom_dialog);
 
-        setSpinner();
+        floor = setSpinner();
+        startPoint = setStartPoint();
 
         yes = findViewById(R.id.yes);
         no = findViewById(R.id.no);
@@ -41,7 +45,7 @@ public class CustomDialog extends Dialog{
         yes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                customDialogClickListener.onPositiveClick();
+                customDialogClickListener.onPositiveClick(floor, startPoint);
                 dismiss();
             }
         });
@@ -54,7 +58,26 @@ public class CustomDialog extends Dialog{
         });
     }
 
-    private void setSpinner() {
+    private String setStartPoint() {
+        radioGroup = findViewById(R.id.radioGroup);
+
+        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId) {
+                    case R.id.elevator:
+                        startPoint = "0";
+                        break;
+                    case R.id.escalator:
+                        startPoint = "1";
+                        break;
+                }
+            }
+        });
+        return startPoint;
+    }
+
+    private String setSpinner() {
         Spinner spinner = findViewById(R.id.spinner);
         String items[] = {"1", "2", "3", "4"}; // 임의로 설정
 
@@ -67,11 +90,13 @@ public class CustomDialog extends Dialog{
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // position 층의 지도 보이기
+                floor = items[position];
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {            }
 
         });
+        return floor;
     }
 }

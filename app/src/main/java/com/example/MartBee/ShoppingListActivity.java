@@ -1,18 +1,14 @@
 package com.example.MartBee;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -57,8 +53,12 @@ public class ShoppingListActivity extends AppCompatActivity {
             public void onClick(View v) {
                 CustomDialog customDialog = new CustomDialog(ShoppingListActivity.this, new CustomDialogClickListener() {
                     @Override
-                    public void onPositiveClick() {
+                    public void onPositiveClick(String floor, String startPoint) {
+                        Intent toMapIntent = new Intent(ShoppingListActivity.this, MapActivity.class);
+                        toMapIntent.putExtra("floor", floor);
+                        toMapIntent.putExtra("startPoint", startPoint);
 
+                        startActivity(toMapIntent);
                     }
 
                     @Override
