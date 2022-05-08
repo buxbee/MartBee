@@ -1,5 +1,6 @@
 package com.example.MartBee;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +17,13 @@ import java.util.ArrayList;
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     private static final String TAG = "ListAdapter";
+    private Context context;
     ArrayList<ListNote> items = new ArrayList<>();
+
+    public ListAdapter(ArrayList<ListNote> items, Context context) {
+        this.items = items;
+        this.context = context;
+    }
 
     // xml 적용
     @NonNull
@@ -75,14 +82,17 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
                 }
             });
         }
+        //EditText에서 입력받은 checkBox의 텍스트를 checkBox의 Text에 넣을 수 있게 하는 메서드
         public void setItem(ListNote item) {
             checkBox.setText(item.getShoppingList());
         }
+        //아이템들을 담은 LinearLayout을 보여주게하는 메서드
         public void setLayout() {
             layout.setVisibility(View.VISIBLE);
         }
     }
 
+    //배열에 있는 item들을 가리킴
     public void setItems(ArrayList<ListNote> items) {
         this.items = items;
     }

@@ -1,7 +1,10 @@
 package com.example.MartBee;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +12,13 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -19,6 +29,12 @@ public class ShoppingListActivity extends AppCompatActivity {
     ArrayList<ListNote> listArray;
     EditText listInput;
     ListNote listText;
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter adapter;
+    private RecyclerView.LayoutManager layoutManager;
+    private ArrayList<ListNote> items;
+    private FirebaseDatabase database;
+    private DatabaseReference databaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,25 +44,43 @@ public class ShoppingListActivity extends AppCompatActivity {
         saveBtn = (Button) findViewById(R.id.saveBtn);
         closeBtn = (Button) findViewById(R.id.listCloseBtn);
         listFragment = (Fragment) new ListFragment();
-        // 임시로 데이터 저장
-        listArray = new ArrayList<>();
 
         Intent intent = getIntent();
         String position = intent.getStringExtra("position"); // 마트명
 
         getSupportFragmentManager().beginTransaction().replace(R.id.container, listFragment).commit();
 
-        saveBtn.setOnClickListener(new View.OnClickListener() {
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setHasFixedSize(true);
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        items = new ArrayList<>(); // shoppingList
+
+        database = FirebaseDatabase.getInstance();
+
+        databaseReference = database.getReference("shoppingList");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onClick(View v) {
-//                listInput = (EditText)findViewById(R.id.listInput);
-//                listText = (ListNote) listInput.getText();
-//
-//                ListFragment fragment = (ListFragment) getSupportFragmentManager().findFragmentById(R.id.container);
-//                assert fragment != null;
-//                fragment.saveList(listArray, listInput, listText);
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // 데이터를 받아온다
+                items.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    ListNote shoppingList = snapshot.getValue(ListNote.class);
+                    items.add(shoppingList);
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // 에러 시
+                Toast.makeText(ShoppingListActivity.this, "에러 발생", Toast.LENGTH_SHORT).show();
             }
         });
+
+        adapter = new ListAdapter(items, this);
+        recyclerView.setAdapter(adapter);
+
 
         closeBtn.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -20,6 +20,7 @@ public class ListFragment extends Fragment {
     private static final String TAG = "ListFragment";
     RecyclerView recyclerView;
     ListAdapter adapter;
+    private ArrayList<ListNote> items;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -28,17 +29,16 @@ public class ListFragment extends Fragment {
 
         initUI(rootView);
         return rootView;
+
     }
 
-    public void saveList(ArrayList<ListNote> listArray, EditText listInput, ListNote listText) {
+    public void saveList(ArrayList<ListNote> items, EditText listInput, ListNote listText) {
 
         if (listText == null) {
             Toast.makeText(getContext(), "이름을 입력해주세요", Toast.LENGTH_SHORT).show();
         }
         else {
-            listArray.add(listText);
-            adapter.setItems(listArray);
-            adapter.notifyItemInserted(listArray.size()-1);
+
         }
 
         //EditText 안의 글 초기화
@@ -55,7 +55,7 @@ public class ListFragment extends Fragment {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new ListAdapter();
+        adapter = new ListAdapter(items, getActivity().getApplicationContext());
         recyclerView.setAdapter(adapter);
     }
 }
