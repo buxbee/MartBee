@@ -32,7 +32,7 @@ public class ShoppingListActivity extends AppCompatActivity {
         listArray = new ArrayList<>();
 
         Intent intent = getIntent();
-        String position = intent.getStringExtra("position");
+        String position = intent.getStringExtra("position"); // 마트명
 
         getSupportFragmentManager().beginTransaction().replace(R.id.container, listFragment).commit();
 
