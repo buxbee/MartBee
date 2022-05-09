@@ -3,12 +3,12 @@ package com.example.MartBee;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.os.Bundle;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
@@ -40,9 +40,25 @@ public class MapActivity extends AppCompatActivity {
         String startPoint = intent.getStringExtra("startPoint");
 
         showList = findViewById(R.id.showList);
-
         matrix = new Matrix();
         savedMatrix = new Matrix();
+
+        showList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ListCustomDialog customDialog = new ListCustomDialog(MapActivity.this, new ListCustomDialogClickListener(){
+                    @Override
+                    public void onCloseClick() {
+
+                    }
+                });
+            customDialog.setCanceledOnTouchOutside(true);
+            customDialog.setCancelable(true);
+            customDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+
+            customDialog.show();
+            }
+        });
 
         imageView = findViewById(R.id.image);
         imageView.setOnTouchListener(onTouch);
@@ -79,8 +95,6 @@ public class MapActivity extends AppCompatActivity {
                         break;
                 }
             }
-
-
             return true;
         }
     };
