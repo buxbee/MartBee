@@ -1,24 +1,16 @@
 package com.example.MartBee;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -65,10 +57,11 @@ public class ShoppingListActivity extends AppCompatActivity {
             public void onClick(View v) {
                 CustomDialog customDialog = new CustomDialog(ShoppingListActivity.this, new CustomDialogClickListener() {
                     @Override
-                    public void onPositiveClick(String floor, String startPoint) {
+                    public void onPositiveClick(String floor, String startPoint, String mode) {
                         Intent toMapIntent = new Intent(ShoppingListActivity.this, MapActivity.class);
                         toMapIntent.putExtra("floor", floor);
                         toMapIntent.putExtra("startPoint", startPoint);
+                        toMapIntent.putExtra("mode", mode);
                         toMapIntent.putExtra("name", name);
 
                         startActivity(toMapIntent);
@@ -81,9 +74,16 @@ public class ShoppingListActivity extends AppCompatActivity {
                 });
                 customDialog.setCanceledOnTouchOutside(true);
                 customDialog.setCancelable(true);
-                customDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+//                customDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+//                WindowManager.LayoutParams params = customDialog.getWindow().getAttributes();
+//                params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+//                params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+//                customDialog.getWindow().setAttributes((WindowManager.LayoutParams) params);
 
                 customDialog.show();
+                Window window = customDialog.getWindow();
+                window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+
             }
         });
     }
