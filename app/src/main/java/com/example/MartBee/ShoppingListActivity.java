@@ -51,7 +51,7 @@ public class ShoppingListActivity extends AppCompatActivity {
         listFragment = new ListFragment();
 
         Intent intent = getIntent();
-        String name = intent.getStringExtra("position"); // 마트명
+        String name = intent.getStringExtra("name"); // 마트명
 
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,6 +69,7 @@ public class ShoppingListActivity extends AppCompatActivity {
                         Intent toMapIntent = new Intent(ShoppingListActivity.this, MapActivity.class);
                         toMapIntent.putExtra("floor", floor);
                         toMapIntent.putExtra("startPoint", startPoint);
+                        toMapIntent.putExtra("name", name);
 
                         startActivity(toMapIntent);
                     }

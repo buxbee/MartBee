@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String value = Integer.toString(position);
                 Intent intent = new Intent(MainActivity.this, ShoppingListActivity.class);
-                intent.putExtra("position", value);
+                intent.putExtra("name", value);
                 startActivity(intent);
             }
         });
