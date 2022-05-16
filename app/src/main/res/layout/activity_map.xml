@@ -7,7 +7,9 @@
     tools:context=".MapActivity">
 
     <ImageView
-        android:layout_width="match_parent"
+        android:id="@+id/image"
+        android:src="@drawable/floor1"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -15,6 +17,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
     </ImageView>
+
         <Button
             android:id="@+id/showList"
             android:layout_width="wrap_content"
@@ -25,5 +28,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

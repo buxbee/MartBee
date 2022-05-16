@@ -11,17 +11,12 @@
         android:theme="@style/Theme.IndoorNavi">
         <activity
             android:name=".MapActivity"
-            android:exported="true" />
+            android:exported="true">
+        </activity>
         <activity
             android:name=".ShoppingListActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustNothing">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:windowSoftInputMode="adjustNothing"/>
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -30,6 +25,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
 
         </activity>
     </application>
