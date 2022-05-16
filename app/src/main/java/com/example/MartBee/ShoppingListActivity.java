@@ -44,59 +44,21 @@ public class ShoppingListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list);
 
-<<<<<<< Updated upstream
         saveBtn = (Button) findViewById(R.id.saveBtn);
         closeBtn = (Button) findViewById(R.id.listCloseBtn);
-        listFragment = (Fragment) new ListFragment();
-=======
-        listInput = findViewById(R.id.listInput);
         saveBtn = findViewById(R.id.saveBtn);
         closeBtn = findViewById(R.id.listCloseBtn);
         listFragment = new ListFragment();
-        // 임시로 데이터 저장
-        listArray = new ArrayList<>();
->>>>>>> Stashed changes
 
         Intent intent = getIntent();
-        String position = intent.getStringExtra("position"); // 마트명
+        String name = intent.getStringExtra("position"); // 마트명
 
-
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setHasFixedSize(true);
-        layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-        items = new ArrayList<>(); // shoppingList
-
-        database = FirebaseDatabase.getInstance();
-
-        databaseReference = database.getReference("shoppingList");
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-<<<<<<< Updated upstream
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                // 데이터를 받아온다
-                items.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    ListNote shoppingList = snapshot.getValue(ListNote.class);
-                    items.add(shoppingList);
-                }
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // 에러 시
-                Toast.makeText(ShoppingListActivity.this, "에러 발생", Toast.LENGTH_SHORT).show();
-=======
             public void onClick(View v) {
                 getSupportFragmentManager().beginTransaction().replace(R.id.container, listFragment).commit();
->>>>>>> Stashed changes
             }
         });
-
-        adapter = new ListAdapter(items, this);
-        recyclerView.setAdapter(adapter);
-
 
         closeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
