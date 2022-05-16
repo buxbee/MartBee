@@ -20,6 +20,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 
 public class ShoppingListActivity extends AppCompatActivity {
@@ -41,14 +44,22 @@ public class ShoppingListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list);
 
+<<<<<<< Updated upstream
         saveBtn = (Button) findViewById(R.id.saveBtn);
         closeBtn = (Button) findViewById(R.id.listCloseBtn);
         listFragment = (Fragment) new ListFragment();
+=======
+        listInput = findViewById(R.id.listInput);
+        saveBtn = findViewById(R.id.saveBtn);
+        closeBtn = findViewById(R.id.listCloseBtn);
+        listFragment = new ListFragment();
+        // 임시로 데이터 저장
+        listArray = new ArrayList<>();
+>>>>>>> Stashed changes
 
         Intent intent = getIntent();
         String position = intent.getStringExtra("position"); // 마트명
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.container, listFragment).commit();
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
@@ -61,6 +72,7 @@ public class ShoppingListActivity extends AppCompatActivity {
         databaseReference = database.getReference("shoppingList");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
+<<<<<<< Updated upstream
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 // 데이터를 받아온다
                 items.clear();
@@ -75,6 +87,10 @@ public class ShoppingListActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {
                 // 에러 시
                 Toast.makeText(ShoppingListActivity.this, "에러 발생", Toast.LENGTH_SHORT).show();
+=======
+            public void onClick(View v) {
+                getSupportFragmentManager().beginTransaction().replace(R.id.container, listFragment).commit();
+>>>>>>> Stashed changes
             }
         });
 
