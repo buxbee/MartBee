@@ -2,13 +2,18 @@ package com.example.MartBee;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
@@ -19,6 +24,12 @@ public class ShoppingListActivity extends AppCompatActivity {
     ArrayList<ListNote> listArray;
     EditText listInput;
     ListNote listText;
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter adapter;
+    private RecyclerView.LayoutManager layoutManager;
+    private ArrayList<ListNote> items;
+    private FirebaseDatabase database;
+    private DatabaseReference databaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,24 +38,17 @@ public class ShoppingListActivity extends AppCompatActivity {
 
         saveBtn = (Button) findViewById(R.id.saveBtn);
         closeBtn = (Button) findViewById(R.id.listCloseBtn);
-        listFragment = (Fragment) new ListFragment();
-        // 임시로 데이터 저장
-        listArray = new ArrayList<>();
+        saveBtn = findViewById(R.id.saveBtn);
+        closeBtn = findViewById(R.id.listCloseBtn);
+        listFragment = new ListFragment();
 
         Intent intent = getIntent();
-        String position = intent.getStringExtra("position"); // 마트명
-
-        getSupportFragmentManager().beginTransaction().replace(R.id.container, listFragment).commit();
+        String name = intent.getStringExtra("name"); // 마트명
 
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                listInput = (EditText)findViewById(R.id.listInput);
-//                listText = (ListNote) listInput.getText();
-//
-//                ListFragment fragment = (ListFragment) getSupportFragmentManager().findFragmentById(R.id.container);
-//                assert fragment != null;
-//                fragment.saveList(listArray, listInput, listText);
+                getSupportFragmentManager().beginTransaction().replace(R.id.container, listFragment).commit();
             }
         });
 
@@ -53,10 +57,12 @@ public class ShoppingListActivity extends AppCompatActivity {
             public void onClick(View v) {
                 CustomDialog customDialog = new CustomDialog(ShoppingListActivity.this, new CustomDialogClickListener() {
                     @Override
-                    public void onPositiveClick(String floor, String startPoint) {
+                    public void onPositiveClick(String floor, String startPoint, String mode) {
                         Intent toMapIntent = new Intent(ShoppingListActivity.this, MapActivity.class);
                         toMapIntent.putExtra("floor", floor);
                         toMapIntent.putExtra("startPoint", startPoint);
+                        toMapIntent.putExtra("mode", mode);
+                        toMapIntent.putExtra("name", name);
 
                         startActivity(toMapIntent);
                     }
@@ -68,9 +74,16 @@ public class ShoppingListActivity extends AppCompatActivity {
                 });
                 customDialog.setCanceledOnTouchOutside(true);
                 customDialog.setCancelable(true);
-                customDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+//                customDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+//                WindowManager.LayoutParams params = customDialog.getWindow().getAttributes();
+//                params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+//                params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+//                customDialog.getWindow().setAttributes((WindowManager.LayoutParams) params);
 
                 customDialog.show();
+                Window window = customDialog.getWindow();
+                window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+
             }
         });
     }

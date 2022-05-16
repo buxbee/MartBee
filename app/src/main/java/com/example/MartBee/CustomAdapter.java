@@ -4,19 +4,25 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+
 import java.util.ArrayList;
 
-public class ListAdapter extends RecyclerView.Adapter<ListAdapter.CustomViewHolder> {
+public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomViewHolder> {
 
     private ArrayList<ListNote> listNoteArrayList;
     private Context context;
 
-    public ListAdapter(ArrayList<ListNote> listNoteArrayList, Context context) {
+    public CustomAdapter(ArrayList<ListNote> listNoteArrayList, Context context) {
         this.listNoteArrayList = listNoteArrayList;
         this.context = context;
     }
@@ -30,46 +36,46 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.CustomViewHold
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
-        holder.category.setText(listNoteArrayList.get(position).getShoppingList());
+    public void onBindViewHolder(@NonNull CustomAdapter.CustomViewHolder holder, int position) {
+        Toast.makeText(context.getApplicationContext(), "onBindViewHolder", Toast.LENGTH_SHORT).show();
+        holder.category.setText(String.valueOf(listNoteArrayList.get(position).getShoppingList()));
     }
 
     @Override
     public int getItemCount() {
-        return (listNoteArrayList != null ? listNoteArrayList.size() : 0);    }
+        return (listNoteArrayList != null ? listNoteArrayList.size() : 0);
+    }
 
     public class CustomViewHolder extends RecyclerView.ViewHolder {
 
-        TextView category;
+        private TextView category;
+        private CheckBox checkBox;
+        private Button delBtn;
 
         public CustomViewHolder(@NonNull View itemView) {
             super(itemView);
+            this.checkBox = itemView.findViewById(R.id.listCheckBox);
+            this.delBtn = itemView.findViewById(R.id.deleteListBtn);
             this.category = itemView.findViewById(R.id.category);
         }
     }
-}
-//    private static final String TAG = "ListAdapter";
-//    private Context context;
-//    ArrayList<ListNote> items = new ArrayList<>();
-//
-//    public ListAdapter(ArrayList<ListNote> items, Context context) {
-//        this.items = items;
-//        this.context = context;
-//    }
-//
+
+
 //    // xml 적용
 //    @NonNull
 //    @Override
-//    public ListAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+//    public CustomAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 //        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 //        View itemView = inflater.inflate(R.layout.item_list, parent, false);
 //
 //        return new ViewHolder(itemView);
 //    }
 //
+//
+//
 //    // 각 항목에 들어갈 데이터
 //    @Override
-//    public void onBindViewHolder(@NonNull ListAdapter.ViewHolder holder, int position) {
+//    public void onBindViewHolder(@NonNull CustomAdapter.ViewHolder holder, int position) {
 //        ListNote item = items.get(position);
 //        holder.setItem(item);
 //        holder.setLayout();
@@ -114,17 +120,14 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.CustomViewHold
 //                }
 //            });
 //        }
-//        //EditText에서 입력받은 checkBox의 텍스트를 checkBox의 Text에 넣을 수 있게 하는 메서드
 //        public void setItem(ListNote item) {
 //            checkBox.setText(item.getShoppingList());
 //        }
-//        //아이템들을 담은 LinearLayout을 보여주게하는 메서드
 //        public void setLayout() {
 //            layout.setVisibility(View.VISIBLE);
 //        }
 //    }
 //
-//    //배열에 있는 item들을 가리킴
 //    public void setItems(ArrayList<ListNote> items) {
 //        this.items = items;
-//    }
+}

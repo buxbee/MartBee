@@ -1,28 +1,29 @@
 package com.example.MartBee;
 
+import static java.sql.Types.NULL;
+
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import java.util.List;
 
-
-public class CustomDialog extends Dialog{
+public class CustomDialog extends Dialog {
 
     private Context context;
     private CustomDialogClickListener customDialogClickListener;
     private RadioGroup radioGroup;
-    String floor, startPoint;
+    String floor, startPoint, mode;
     Button yes, no;
 
     public CustomDialog(@NonNull Context context, CustomDialogClickListener customDialogClickListener) {
@@ -36,8 +37,10 @@ public class CustomDialog extends Dialog{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.custom_dialog);
 
-        floor = setSpinner();
-        startPoint = setStartPoint();
+        setSpinner();
+        String result[] = setStartPoint();
+        startPoint = result[0];
+        mode = result[1];
 
         yes = findViewById(R.id.yes);
         no = findViewById(R.id.no);
@@ -45,8 +48,10 @@ public class CustomDialog extends Dialog{
         yes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                customDialogClickListener.onPositiveClick(floor, startPoint);
-                dismiss();
+                if (startPoint.length() != 0 | mode.length() != 0) {
+                    customDialogClickListener.onPositiveClick(floor, startPoint, mode);
+                    dismiss();
+                }
             }
         });
         no.setOnClickListener(new View.OnClickListener() {
@@ -58,8 +63,11 @@ public class CustomDialog extends Dialog{
         });
     }
 
-    private String setStartPoint() {
+    private String[] setStartPoint() {
         radioGroup = findViewById(R.id.radioGroup);
+
+        startPoint = "";
+        mode = "";
 
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -71,10 +79,19 @@ public class CustomDialog extends Dialog{
                     case R.id.escalator:
                         startPoint = "1";
                         break;
+                    case R.id.entrance:
+                        startPoint = "2";
+                        break;
+                    case R.id.pin:
+                        mode = "PIN";
+                        break;
+                    case R.id.navigation:
+                        mode = "NAVIGATION";
+                        break;
                 }
             }
         });
-        return startPoint;
+        return new String[]{startPoint, mode};
     }
 
     private String setSpinner() {
@@ -94,7 +111,8 @@ public class CustomDialog extends Dialog{
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {            }
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
 
         });
         return floor;

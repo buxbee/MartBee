@@ -1,61 +1,83 @@
 package com.example.MartBee;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.lang.reflect.Array;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
-import java.util.List;
 
 public class ListFragment extends Fragment {
 
     private static final String TAG = "ListFragment";
-    RecyclerView recyclerView;
-    ListAdapter adapter;
+
+    private ArrayList<ListNote> listNoteArrayList;
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter adapter;
+    private RecyclerView.LayoutManager layoutManager;
+    private FirebaseDatabase database;
+    private DatabaseReference databaseReference;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_list, container, false);
 
-        initUI(rootView);
+        recyclerView = rootView.findViewById(R.id.recyclerView);
+
+        //GridLayoutManager layoutManager = new GridLayoutManager(getContext(),  2);
+        layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+        recyclerView.setLayoutManager(layoutManager);
+
+
+        listNoteArrayList = new ArrayList<>();
+
+        database = FirebaseDatabase.getInstance();
+        databaseReference = database.getReference("category");
+
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                listNoteArrayList.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    ListNote listNote = snapshot.getValue(ListNote.class);
+                    listNoteArrayList.add(listNote);
+
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                Log.e("fragment1", String.valueOf(databaseError.toException()));//에러문 출력
+            }
+        });
+
+        adapter = new ListAdapter(listNoteArrayList, getContext());
+        recyclerView.setAdapter(adapter);
+
+
         return rootView;
     }
 
-    public void saveList(ArrayList<ListNote> listArray, EditText listInput, ListNote listText) {
-
-        if (listText == null) {
-            Toast.makeText(getContext(), "이름을 입력해주세요", Toast.LENGTH_SHORT).show();
-        }
-        else {
-            listArray.add(listText);
-            adapter.setItems(listArray);
-            adapter.notifyItemInserted(listArray.size()-1);
-        }
-
-        //EditText 안의 글 초기화
-        listInput.setText("");
-
-        Toast.makeText(getContext(), " 추가되었습니다.", Toast.LENGTH_SHORT).show();
-
-    }
-
-
-    private void initUI(ViewGroup rootView){
-        recyclerView = rootView.findViewById(R.id.recyclerView);
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-        recyclerView.setLayoutManager(layoutManager);
-
-        adapter = new ListAdapter();
-        recyclerView.setAdapter(adapter);
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
     }
 }
