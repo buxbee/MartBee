@@ -1,16 +1,29 @@
 package com.example.MartBee;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.view.MotionEvent;
 import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 public class MapActivity extends AppCompatActivity {
     private Button showList;
@@ -38,10 +51,38 @@ public class MapActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String floor = intent.getStringExtra("floor");
         String startPoint = intent.getStringExtra("startPoint");
+        String name = intent.getStringExtra("name");
+        String mode = intent.getStringExtra("mode");
 
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference storageReference = storage.getReference();
+        StorageReference pathReference = storageReference.child(name);
+
+        if (pathReference == null) {
+        }
+        else {
+            StorageReference submitProfile = storageReference.child(name + "/" +floor+".png");
+            submitProfile.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                @Override
+                public void onSuccess(Uri uri) {
+                    Glide.with(MapActivity.this).load(uri).into(imageView);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(getApplicationContext(), "이미지 로딩에 실패하였습니다", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        imageView = findViewById(R.id.image);
         showList = findViewById(R.id.showList);
         matrix = new Matrix();
         savedMatrix = new Matrix();
+
+//        matrix.postTranslate(200, 200);
+//        matrix.postTranslate(236, 278);
+        imageView.setImageMatrix(matrix);
 
         showList.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,11 +101,11 @@ public class MapActivity extends AppCompatActivity {
             }
         });
 
-        imageView = findViewById(R.id.image);
         imageView.setOnTouchListener(onTouch);
         imageView.setScaleType(ImageView.ScaleType.MATRIX); // 스케일 타입을 매트릭스로 해줘야 움직인다.
 
     }
+
     private View.OnTouchListener onTouch = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {

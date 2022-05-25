@@ -1,19 +1,32 @@
 package com.example.MartBee;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 
@@ -21,29 +34,26 @@ public class ShoppingListActivity extends AppCompatActivity {
 
     Button saveBtn, closeBtn;
     Fragment listFragment;
-    ArrayList<ListNote> listArray;
-    EditText listInput;
-    ListNote listText;
-    private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
-    private RecyclerView.LayoutManager layoutManager;
-    private ArrayList<ListNote> items;
-    private FirebaseDatabase database;
-    private DatabaseReference databaseReference;
+
+    ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list);
 
-        saveBtn = (Button) findViewById(R.id.saveBtn);
-        closeBtn = (Button) findViewById(R.id.listCloseBtn);
+//        Loading loading = new Loading(getApplicationContext());
+
+        saveBtn = findViewById(R.id.saveBtn);
+        closeBtn = findViewById(R.id.listCloseBtn);
         saveBtn = findViewById(R.id.saveBtn);
         closeBtn = findViewById(R.id.listCloseBtn);
         listFragment = new ListFragment();
+        imageView = findViewById(R.id.image);
 
         Intent intent = getIntent();
         String name = intent.getStringExtra("name"); // 마트명
+
 
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,12 +68,15 @@ public class ShoppingListActivity extends AppCompatActivity {
                 CustomDialog customDialog = new CustomDialog(ShoppingListActivity.this, new CustomDialogClickListener() {
                     @Override
                     public void onPositiveClick(String floor, String startPoint, String mode) {
-                        Intent toMapIntent = new Intent(ShoppingListActivity.this, MapActivity.class);
-                        toMapIntent.putExtra("floor", floor);
-                        toMapIntent.putExtra("startPoint", startPoint);
-                        toMapIntent.putExtra("mode", mode);
-                        toMapIntent.putExtra("name", name);
+                        Toast.makeText(getApplicationContext(), floor, Toast.LENGTH_SHORT).show();
 
+                        Intent toMapIntent = new Intent(ShoppingListActivity.this, MapActivity.class);
+                        toMapIntent.putExtra("name", name); // 마트명
+                        toMapIntent.putExtra("floor", floor); // n층
+                        toMapIntent.putExtra("startPoint", startPoint); // 시작 지점
+                        toMapIntent.putExtra("mode", mode); // pin or 최적 경로
+
+//                        loading.init();
                         startActivity(toMapIntent);
                     }
 

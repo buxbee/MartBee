@@ -52,6 +52,9 @@ public class CustomDialog extends Dialog {
                     customDialogClickListener.onPositiveClick(floor, startPoint, mode);
                     dismiss();
                 }
+                else {
+                    Toast.makeText(getContext(), "버튼을 선택해주세요.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         no.setOnClickListener(new View.OnClickListener() {
