@@ -26,7 +26,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 public class MapActivity extends AppCompatActivity {
-    private Button showList;
+
+    private Button showList, prev, next;
     private ImageView imageView;
 
     enum TOUCH_MODE {
@@ -48,12 +49,18 @@ public class MapActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        imageView = findViewById(R.id.image);
+        showList = findViewById(R.id.showList);
+        prev = findViewById(R.id.prevFloor);
+        next = findViewById(R.id.nextFloor);
+
         Intent intent = getIntent();
         String floor = intent.getStringExtra("floor");
         String startPoint = intent.getStringExtra("startPoint");
         String name = intent.getStringExtra("name");
         String mode = intent.getStringExtra("mode");
 
+        // Storage
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageReference = storage.getReference();
         StorageReference pathReference = storageReference.child(name);
@@ -75,13 +82,12 @@ public class MapActivity extends AppCompatActivity {
             });
         }
 
-        imageView = findViewById(R.id.image);
-        showList = findViewById(R.id.showList);
+
         matrix = new Matrix();
         savedMatrix = new Matrix();
 
 //        matrix.postTranslate(200, 200);
-//        matrix.postTranslate(236, 278);
+        matrix.postTranslate(236, 278);
         imageView.setImageMatrix(matrix);
 
         showList.setOnClickListener(new View.OnClickListener() {
@@ -101,6 +107,31 @@ public class MapActivity extends AppCompatActivity {
             }
         });
 
+        prev.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                floor = Integer.toString(Integer.parseInt(floor) -1);
+                StorageReference submitProfile = storageReference.child(name + "/" +floor+".png");
+                submitProfile.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        Glide.with(MapActivity.this).load(uri).into(imageView);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getApplicationContext(), "이미지 로딩에 실패하였습니다", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+
+        next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
         imageView.setOnTouchListener(onTouch);
         imageView.setScaleType(ImageView.ScaleType.MATRIX); // 스케일 타입을 매트릭스로 해줘야 움직인다.
 
