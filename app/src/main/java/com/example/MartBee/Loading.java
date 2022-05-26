@@ -22,6 +22,9 @@ public class Loading extends View {
         init();
     }
 
+    private void Dijkstra() {
+
+    }
 
 
     public void init() {
