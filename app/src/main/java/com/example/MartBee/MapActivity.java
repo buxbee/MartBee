@@ -1,23 +1,13 @@
 package com.example.MartBee;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ImageDecoder;
-import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
-import android.provider.MediaStore;
-import android.util.Config;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -41,17 +31,13 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.squareup.picasso.Picasso;
-
-import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 
 public class MapActivity extends AppCompatActivity {
 
     private Button showList, prev, next;
     private ImageView imageView;
+    String floor, start, name, mode;
 
     enum TOUCH_MODE {
         NONE,   // 터치 안했을 때
@@ -79,10 +65,11 @@ public class MapActivity extends AppCompatActivity {
         next = findViewById(R.id.nextFloor);
 
         Intent intent = getIntent();
-        String floor = intent.getStringExtra("floor");
-        String startPoint = intent.getStringExtra("startPoint");
-        String name = intent.getStringExtra("name");
-        String mode = intent.getStringExtra("mode");
+        floor = intent.getStringExtra("floor"); // 층
+        start = intent.getStringExtra("startPoint"); // 시작 지점
+        name = intent.getStringExtra("name"); // 마트 이름
+        mode = intent.getStringExtra("mode"); // 모드
+
 
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageReference = storage.getReference();
@@ -101,9 +88,6 @@ public class MapActivity extends AppCompatActivity {
                     }
 //                    imageView.setImageURI(uri);
 //                    Glide.with(MapActivity.this).load(uri).into(imageView);
-
-
-
                     Log.d("uri", String.valueOf(uri));
                 }
             }).addOnFailureListener(new OnFailureListener() {
@@ -124,6 +108,7 @@ public class MapActivity extends AppCompatActivity {
 
         imageView.setOnTouchListener(onTouch);
         imageView.setScaleType(ImageView.ScaleType.MATRIX); // 스케일 타입을 매트릭스로 해줘야 움직인다.
+        Log.d("MATRIX", "MATRIX");
 
         showList.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -187,8 +172,6 @@ public class MapActivity extends AppCompatActivity {
                     tempCanvas = new Canvas(tempBitmap);
                     marker = (BitmapDrawable) getResources().getDrawable(R.drawable.marker);
 
-                    //Draw the image bitmap into the canvas
-
                     draw(tempCanvas);
                 }
 
@@ -210,14 +193,14 @@ public class MapActivity extends AppCompatActivity {
             tempCanvas.drawBitmap(markerBitmap, 200, 200, null);
             tempCanvas.drawBitmap(markerBitmap, 120, 0, null);
 
+            if (mode!=null && mode.equals("1")){
+                // navigation
+            }
+
 
             //Attach the canvas to the ImageView
             tempCanvas.save();
             imageView.setImageBitmap(tempBitmap);
-
-            Log.d("tempBitmap", String.valueOf(tempBitmap));
-            Log.d("tempCanvas", String.valueOf(tempCanvas));
-            Log.d("markerBitmap", String.valueOf(markerBitmap));
         }
     }
 

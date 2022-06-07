@@ -130,15 +130,12 @@ public class ShoppingListActivity extends AppCompatActivity {
                 CustomDialog customDialog = new CustomDialog(ShoppingListActivity.this, new CustomDialogClickListener() {
                     @Override
                     public void onPositiveClick(String floor, String startPoint, String mode) {
-                        Toast.makeText(getApplicationContext(), floor, Toast.LENGTH_SHORT).show();
-
                         Intent toMapIntent = new Intent(ShoppingListActivity.this, MapActivity.class);
                         toMapIntent.putExtra("name", name); // 마트명
                         toMapIntent.putExtra("floor", floor); // n층
                         toMapIntent.putExtra("startPoint", startPoint); // 시작 지점
                         toMapIntent.putExtra("mode", mode); // pin or 최적 경로
 
-//                        loading.init();
                         startActivity(toMapIntent);
                     }
 

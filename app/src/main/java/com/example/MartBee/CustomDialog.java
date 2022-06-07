@@ -5,6 +5,7 @@ import static java.sql.Types.NULL;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -17,12 +18,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import java.util.Arrays;
+
 
 public class CustomDialog extends Dialog {
 
     private Context context;
     private CustomDialogClickListener customDialogClickListener;
-    private RadioGroup radioGroup;
+    private RadioGroup radioGroup1, radioGroup2;
     String floor, startPoint, mode;
     Button yes, no;
 
@@ -38,9 +41,12 @@ public class CustomDialog extends Dialog {
         setContentView(R.layout.custom_dialog);
 
         setSpinner();
-        String result[] = setStartPoint();
-        startPoint = result[0];
-        mode = result[1];
+        String[] result = setStartPoint();
+        if (result.length==2){
+            startPoint = result[0];
+            mode = result[1];
+        }
+
 
         yes = findViewById(R.id.yes);
         no = findViewById(R.id.no);
@@ -48,58 +54,73 @@ public class CustomDialog extends Dialog {
         yes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (startPoint.length() != 0 | mode.length() != 0) {
-                    customDialogClickListener.onPositiveClick(floor, startPoint, mode);
-                    dismiss();
-                }
-                else {
-                    Toast.makeText(getContext(), "버튼을 선택해주세요.", Toast.LENGTH_SHORT).show();
-                }
+//                if (flag) {
+//                    customDialogClickListener.onPositiveClick(floor, startPoint, mode);
+//                    dismiss();
+//                }
+//                else {
+//                    Toast.makeText(getContext(), "버튼을 선택해주세요.", Toast.LENGTH_SHORT).show();
+//                }
+
+                customDialogClickListener.onPositiveClick(floor, startPoint, mode);
+                dismiss();
+
             }
         });
         no.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 customDialogClickListener.onNegativeClick();
+                Log.d("check", Arrays.toString(result));
                 dismiss();
             }
         });
     }
 
     private String[] setStartPoint() {
-        radioGroup = findViewById(R.id.radioGroup);
+        radioGroup1 = findViewById(R.id.radioGroup1);
+        radioGroup2 = findViewById(R.id.radioGroup2);
 
-        startPoint = "";
-        mode = "";
+        String[] set = new String[2];
 
-        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+
+        radioGroup1.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 switch (checkedId) {
                     case R.id.elevator:
-                        startPoint = "0";
+                        set[0] = "0";
                         break;
                     case R.id.escalator:
-                        startPoint = "1";
+                        set[0] = "1";
                         break;
                     case R.id.entrance:
-                        startPoint = "2";
+                        set[0] = "2";
                         break;
-                    case R.id.pin:
-                        mode = "PIN";
-                        break;
-                    case R.id.navigation:
-                        mode = "NAVIGATION";
+                    default:
                         break;
                 }
             }
         });
-        return new String[]{startPoint, mode};
+        radioGroup2.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId) {
+                    case R.id.pin:
+                        set[1] = "0";
+                        break;
+                    case R.id.navigation:
+                        set[1] = "1";
+                        break;
+                }
+            }
+        });
+        return set;
     }
 
     private String setSpinner() {
         Spinner spinner = findViewById(R.id.spinner);
-        String items[] = {"1", "2", "3", "4"}; // 임의로 설정
+        String items[] = {"1", "2", "3"}; // 임의로 설정
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 getContext(), android.R.layout.simple_spinner_item, items
