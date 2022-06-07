@@ -29,15 +29,24 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import java.io.FileNotFoundException;
+import java.io.Serializable;
+import java.util.List;
 
 public class MapActivity extends AppCompatActivity {
 
     private Button showList, prev, next;
     private ImageView imageView;
     String floor, start, name, mode;
+    private Intent intent;
 
     enum TOUCH_MODE {
         NONE,   // 터치 안했을 때
@@ -64,7 +73,7 @@ public class MapActivity extends AppCompatActivity {
         prev = findViewById(R.id.prevFloor);
         next = findViewById(R.id.nextFloor);
 
-        Intent intent = getIntent();
+        intent = getIntent();
         floor = intent.getStringExtra("floor"); // 층
         start = intent.getStringExtra("startPoint"); // 시작 지점
         name = intent.getStringExtra("name"); // 마트 이름
@@ -98,13 +107,42 @@ public class MapActivity extends AppCompatActivity {
             });
         }
 
+        // realtime db
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference mRef = database.getReference("message2");
 
+        mRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
+                for(DataSnapshot snapshot:dataSnapshot.getChildren()) {
+                    Log.e("snapshot", String.valueOf(snapshot));
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
         matrix = new Matrix();
         savedMatrix = new Matrix();
 
-        matrix.postTranslate(50, -20);
-        matrix.postScale(0.9f, 0.8f);
-        imageView.setImageMatrix(matrix);
+
 
         imageView.setOnTouchListener(onTouch);
         imageView.setScaleType(ImageView.ScaleType.MATRIX); // 스케일 타입을 매트릭스로 해줘야 움직인다.
@@ -127,31 +165,55 @@ public class MapActivity extends AppCompatActivity {
             }
         });
 
-//        prev.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-////                floor = Integer.toString(Integer.parseInt(floor) -1);
-//                StorageReference submitProfile = storageReference.child(name + "/" +floor+".png");
-//                submitProfile.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-//                    @Override
-//                    public void onSuccess(Uri uri) {
+        prev.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                floor = Integer.toString(Integer.parseInt(floor) -1);
+                StorageReference submitProfile = storageReference.child(name + "/" +floor+".png");
+                submitProfile.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
 //                        Glide.with(MapActivity.this).load(uri).into(imageView);
-//                    }
-//                }).addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//                        Toast.makeText(getApplicationContext(), "이미지 로딩에 실패하였습니다", Toast.LENGTH_SHORT).show();
-//                    }
-//                });
-//            }
-//        });
-//
-//        next.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//            }
-//        });
+                        try {
+                            new MyView(MapActivity.this, uri);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getApplicationContext(), "이미지 로딩에 실패하였습니다", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+
+        next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                floor = Integer.toString(Integer.parseInt(floor) +1);
+                StorageReference submitProfile = storageReference.child(name + "/" +floor+".png");
+                submitProfile.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+//                        Glide.with(MapActivity.this).load(uri).into(imageView);
+                        try {
+                            new MyView(MapActivity.this, uri);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getApplicationContext(), "이미지 로딩에 실패하였습니다", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
 
     }
 
@@ -166,18 +228,17 @@ public class MapActivity extends AppCompatActivity {
             Glide.with(getApplicationContext()).asBitmap().load(uri).into(new CustomTarget<Bitmap>() {
                 @Override
                 public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                    Log.d("onResourceReady", String.valueOf(resource));
                     map = resource.copy(resource.getConfig(), true);
                     tempBitmap = Bitmap.createBitmap(resource.getWidth(), resource.getHeight(), resource.getConfig());
                     tempCanvas = new Canvas(tempBitmap);
-                    marker = (BitmapDrawable) getResources().getDrawable(R.drawable.marker);
+                    marker = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
 
                     draw(tempCanvas);
                 }
 
                 @Override
                 public void onLoadCleared(@Nullable Drawable placeholder) {
-                    Log.d("onLoadCleared", String.valueOf(placeholder));
+                    Log.e("onLoadCleared", String.valueOf(placeholder));
                 }
             });
         }
@@ -201,6 +262,10 @@ public class MapActivity extends AppCompatActivity {
             //Attach the canvas to the ImageView
             tempCanvas.save();
             imageView.setImageBitmap(tempBitmap);
+
+            matrix.postTranslate(0, 100);
+            matrix.postScale(2f, 2f);
+            imageView.setImageMatrix(matrix);
         }
     }
 
