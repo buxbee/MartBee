@@ -1,29 +1,52 @@
 package com.example.MartBee;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ImageDecoder;
 import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
+import android.util.Config;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.view.MotionEvent;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
+
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class MapActivity extends AppCompatActivity {
 
@@ -35,6 +58,7 @@ public class MapActivity extends AppCompatActivity {
         SINGLE, // 한손가락 터치
         MULTI   //두손가락 터치
     }
+
     private TOUCH_MODE touchMode;
     private Matrix matrix;      //기존 매트릭스
     private Matrix savedMatrix; //작업 후 이미지에 매핑할 매트릭스
@@ -60,19 +84,27 @@ public class MapActivity extends AppCompatActivity {
         String name = intent.getStringExtra("name");
         String mode = intent.getStringExtra("mode");
 
-        // Storage
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageReference = storage.getReference();
         StorageReference pathReference = storageReference.child(name);
 
         if (pathReference == null) {
-        }
-        else {
-            StorageReference submitProfile = storageReference.child(name + "/" +floor+".png");
+        } else {
+            StorageReference submitProfile = storageReference.child(name + "/" + floor + ".png");
             submitProfile.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                 @Override
                 public void onSuccess(Uri uri) {
-                    Glide.with(MapActivity.this).load(uri).into(imageView);
+                    try {
+                        new MyView(MapActivity.this, uri);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+//                    imageView.setImageURI(uri);
+//                    Glide.with(MapActivity.this).load(uri).into(imageView);
+
+
+
+                    Log.d("uri", String.valueOf(uri));
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
@@ -86,55 +118,107 @@ public class MapActivity extends AppCompatActivity {
         matrix = new Matrix();
         savedMatrix = new Matrix();
 
-//        matrix.postTranslate(200, 200);
-        matrix.postTranslate(236, 278);
+        matrix.postTranslate(50, -20);
+        matrix.postScale(0.9f, 0.8f);
         imageView.setImageMatrix(matrix);
+
+        imageView.setOnTouchListener(onTouch);
+        imageView.setScaleType(ImageView.ScaleType.MATRIX); // 스케일 타입을 매트릭스로 해줘야 움직인다.
 
         showList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ListCustomDialog customDialog = new ListCustomDialog(MapActivity.this, new ListCustomDialogClickListener(){
+                ListCustomDialog customDialog = new ListCustomDialog(MapActivity.this, new ListCustomDialogClickListener() {
                     @Override
                     public void onCloseClick() {
 
                     }
                 });
-            customDialog.setCanceledOnTouchOutside(true);
-            customDialog.setCancelable(true);
-            customDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+                customDialog.setCanceledOnTouchOutside(true);
+                customDialog.setCancelable(true);
+                customDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
 
-            customDialog.show();
+                customDialog.show();
             }
         });
 
-        prev.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                floor = Integer.toString(Integer.parseInt(floor) -1);
-                StorageReference submitProfile = storageReference.child(name + "/" +floor+".png");
-                submitProfile.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                    @Override
-                    public void onSuccess(Uri uri) {
-                        Glide.with(MapActivity.this).load(uri).into(imageView);
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(), "이미지 로딩에 실패하였습니다", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
+//        prev.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+////                floor = Integer.toString(Integer.parseInt(floor) -1);
+//                StorageReference submitProfile = storageReference.child(name + "/" +floor+".png");
+//                submitProfile.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+//                    @Override
+//                    public void onSuccess(Uri uri) {
+//                        Glide.with(MapActivity.this).load(uri).into(imageView);
+//                    }
+//                }).addOnFailureListener(new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception e) {
+//                        Toast.makeText(getApplicationContext(), "이미지 로딩에 실패하였습니다", Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+//            }
+//        });
+//
+//        next.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//            }
+//        });
 
-        next.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+    }
 
-            }
-        });
-        imageView.setOnTouchListener(onTouch);
-        imageView.setScaleType(ImageView.ScaleType.MATRIX); // 스케일 타입을 매트릭스로 해줘야 움직인다.
+    public class MyView extends View {
+        private BitmapDrawable marker;
+        private Bitmap tempBitmap, map;
+        private Canvas tempCanvas;
 
+        public MyView(Context context, Uri uri) throws FileNotFoundException {
+            super(context);
+
+            Glide.with(getApplicationContext()).asBitmap().load(uri).into(new CustomTarget<Bitmap>() {
+                @Override
+                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                    Log.d("onResourceReady", String.valueOf(resource));
+                    map = resource.copy(resource.getConfig(), true);
+                    tempBitmap = Bitmap.createBitmap(resource.getWidth(), resource.getHeight(), resource.getConfig());
+                    tempCanvas = new Canvas(tempBitmap);
+                    marker = (BitmapDrawable) getResources().getDrawable(R.drawable.marker);
+
+                    //Draw the image bitmap into the canvas
+
+                    draw(tempCanvas);
+                }
+
+                @Override
+                public void onLoadCleared(@Nullable Drawable placeholder) {
+                    Log.d("onLoadCleared", String.valueOf(placeholder));
+                }
+            });
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+
+            tempCanvas.drawBitmap(map, 0, 0, null);
+            Bitmap markerBitmap = marker.getBitmap();
+
+            //Draw marker
+            tempCanvas.drawBitmap(markerBitmap, 200, 200, null);
+            tempCanvas.drawBitmap(markerBitmap, 120, 0, null);
+
+
+            //Attach the canvas to the ImageView
+            tempCanvas.save();
+            imageView.setImageBitmap(tempBitmap);
+
+            Log.d("tempBitmap", String.valueOf(tempBitmap));
+            Log.d("tempCanvas", String.valueOf(tempCanvas));
+            Log.d("markerBitmap", String.valueOf(markerBitmap));
+        }
     }
 
     private View.OnTouchListener onTouch = new View.OnTouchListener() {
@@ -184,10 +268,12 @@ public class MapActivity extends AppCompatActivity {
         float y = e.getY(0) - e.getY(1);
         return (float) Math.sqrt(x * x + y * y);
     }
+
     private void donwSingleEvent(MotionEvent event) {
         savedMatrix.set(matrix);
         startPoint = new PointF(event.getX(), event.getY());
     }
+
     private void downMultiEvent(MotionEvent event) {
         oldDistance = getDistance(event);
         if (oldDistance > 5f) {
@@ -197,11 +283,13 @@ public class MapActivity extends AppCompatActivity {
             oldDegree = (radian * 180) / Math.PI;
         }
     }
+
     private void moveSingleEvent(MotionEvent event) {
         matrix.set(savedMatrix);
         matrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
         imageView.setImageMatrix(matrix);
     }
+
     private void moveMultiEvent(MotionEvent event) {
         float newDistance = getDistance(event);
         if (newDistance > 5f) {
