@@ -10,12 +10,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_margin="13dp">
+        android:layout_margin="20dp">
 
         <EditText
             android:id="@+id/nameSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:layout_marginTop="30dp"
             android:hint="이름을 입력하세요."/>
 
         <ListView
@@ -23,7 +25,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:layout_margin="10dp"
             android:divider="#999999"
             android:dividerHeight="1dp">
         </ListView>
