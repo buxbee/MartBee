@@ -44,7 +44,7 @@ public class ShoppingListActivity extends AppCompatActivity {
     ListView list;
     EditText editText;
     ImageView imageView;
-    DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference("message2");
+    DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference("user");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -20,33 +20,42 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.view.MotionEvent;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.ChildEventListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
 import java.io.FileNotFoundException;
-import java.io.Serializable;
-import java.util.List;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MapActivity extends AppCompatActivity {
 
     private Button showList, prev, next;
     private ImageView imageView;
-    String floor, start, name, mode;
+    private String floor, start, name, mode;
     private Intent intent;
+    private HashMap<String, ArrayList<Object>> storeCategory;
+    private ArrayList<String> databaseCategory;
+    private ArrayList<Object> XY;
 
     enum TOUCH_MODE {
         NONE,   // 터치 안했을 때
@@ -80,6 +89,57 @@ public class MapActivity extends AppCompatActivity {
         mode = intent.getStringExtra("mode"); // 모드
 
 
+        // datastore, collection
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference cRef = firestore.collection("category");
+        storeCategory = new HashMap<>();
+        cRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot documentSnapshot : task.getResult()) {
+//                        Log.d("datastore", String.valueOf(documentSnapshot.getData()));
+//                        Log.d("datastore", documentSnapshot.getId());
+                        XY = new ArrayList<Object>();
+                        XY.add(documentSnapshot.get("x"));
+                        XY.add(documentSnapshot.get("y"));
+                        storeCategory.put(documentSnapshot.getId(), XY);
+                    }
+                    Log.d("datastore", String.valueOf(storeCategory));
+                } else {
+                    Toast.makeText(getApplicationContext(), "firestore 실패", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+
+        // realtime db
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference mRef = database.getReference("user");
+        databaseCategory = new ArrayList<>();
+        mRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+//                    Log.d("data", String.valueOf(snapshot.getValue()));
+                    databaseCategory.add(String.valueOf(snapshot.getValue()));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getApplicationContext(), "DatabaseError", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        if (mode != null && mode.equals("1")) {
+            // navigation
+            dijk dijk = (com.example.MartBee.dijk) getApplicationContext();
+            dijk.test(start);
+        }
+
+        // uri to bitmap
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageReference = storage.getReference();
         StorageReference pathReference = storageReference.child(name);
@@ -107,41 +167,9 @@ public class MapActivity extends AppCompatActivity {
             });
         }
 
-        // realtime db
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference mRef = database.getReference("message2");
 
-        mRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
-                for(DataSnapshot snapshot:dataSnapshot.getChildren()) {
-                    Log.e("snapshot", String.valueOf(snapshot));
-                }
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
         matrix = new Matrix();
         savedMatrix = new Matrix();
-
 
 
         imageView.setOnTouchListener(onTouch);
@@ -168,8 +196,8 @@ public class MapActivity extends AppCompatActivity {
         prev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                floor = Integer.toString(Integer.parseInt(floor) -1);
-                StorageReference submitProfile = storageReference.child(name + "/" +floor+".png");
+                floor = Integer.toString(Integer.parseInt(floor) - 1);
+                StorageReference submitProfile = storageReference.child(name + "/" + floor + ".png");
                 submitProfile.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {
@@ -193,8 +221,8 @@ public class MapActivity extends AppCompatActivity {
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                floor = Integer.toString(Integer.parseInt(floor) +1);
-                StorageReference submitProfile = storageReference.child(name + "/" +floor+".png");
+                floor = Integer.toString(Integer.parseInt(floor) + 1);
+                StorageReference submitProfile = storageReference.child(name + "/" + floor + ".png");
                 submitProfile.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {
@@ -251,13 +279,18 @@ public class MapActivity extends AppCompatActivity {
             Bitmap markerBitmap = marker.getBitmap();
 
             //Draw marker
-            tempCanvas.drawBitmap(markerBitmap, 200, 200, null);
-            tempCanvas.drawBitmap(markerBitmap, 120, 0, null);
+            for (String group : databaseCategory) {
+                if (storeCategory.containsKey(group)) {
+                    ArrayList<Object> tempValue = storeCategory.get(group);
+                    String x = String.valueOf(tempValue.get(0));
+                    String y = String.valueOf(tempValue.get(1));
+                    x = x.substring(1, x.length()-1);
+                    y = y.substring(1, y.length()-1);
 
-            if (mode!=null && mode.equals("1")){
-                // navigation
+                    tempCanvas.drawBitmap(markerBitmap, Integer.parseInt(x)-30, Integer.parseInt(y)-30, null);
+
+                }
             }
-
 
             //Attach the canvas to the ImageView
             tempCanvas.save();
