@@ -45,7 +45,8 @@ public class ShoppingListActivity extends AppCompatActivity {
     EditText editText;
     ImageView imageView;
     DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference("user");
-
+    String[] key = new String[50];
+    int cnt=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,14 +66,14 @@ public class ShoppingListActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         String name = intent.getStringExtra("name"); // 마트명
-
         mRootRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 data.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    String data2 = snapshot.getValue(String.class);
-                    data.add(data2);
+                for(DataSnapshot dataSnapshot:snapshot.getChildren()){
+                    String data1=dataSnapshot.getValue(String.class);
+                    key[cnt++]=dataSnapshot.getKey();
+                    data.add(data1);
                     adapter.notifyDataSetChanged();
                 }
             }
@@ -88,10 +89,14 @@ public class ShoppingListActivity extends AppCompatActivity {
             public void onClick(View v) {
                 getSupportFragmentManager().beginTransaction().replace(R.id.container, listFragment).commit();
                 String data1=editText.getText().toString();
+
                 DatabaseReference conditionRef=mRootRef.push();
+
+                key[cnt++]=conditionRef.getKey();
                 conditionRef.setValue(data1);
                 data.add(data1);
                 adapter.notifyDataSetChanged();
+
                 editText.setText(null);
             }
         });
@@ -104,8 +109,7 @@ public class ShoppingListActivity extends AppCompatActivity {
                 if(count>0){
                     checked=list.getCheckedItemPosition();
                     if(checked>-1 && checked<count){
-                        String element=data.get(checked).toString();
-                        mRootRef.child(element).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                        mRootRef.child(key[checked]).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
                                 Toast.makeText(getApplicationContext(), "삭제 성공", Toast.LENGTH_SHORT).show();
@@ -130,6 +134,8 @@ public class ShoppingListActivity extends AppCompatActivity {
                 CustomDialog customDialog = new CustomDialog(ShoppingListActivity.this, new CustomDialogClickListener() {
                     @Override
                     public void onPositiveClick(String floor, String startPoint, String mode) {
+                        Toast.makeText(getApplicationContext(), floor, Toast.LENGTH_SHORT).show();
+
                         Intent toMapIntent = new Intent(ShoppingListActivity.this, MapActivity.class);
                         toMapIntent.putExtra("name", name); // 마트명
                         toMapIntent.putExtra("floor", floor); // n층
@@ -153,5 +159,4 @@ public class ShoppingListActivity extends AppCompatActivity {
 
             }
         });
-    }
-}
+    }}
