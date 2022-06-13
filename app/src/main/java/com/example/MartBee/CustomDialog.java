@@ -48,7 +48,7 @@ public class CustomDialog extends Dialog {
                         startPoint = "엘리베이터";
                         break;
                     case R.id.escalator:
-                        startPoint = "에스컬레이터(down)";
+                        startPoint = "에스컬레이터(up)";
                         break;
                     case R.id.entrance:
                         startPoint = "매장입구";

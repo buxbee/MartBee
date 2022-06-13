@@ -8,6 +8,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -56,6 +57,8 @@ public class MapActivity extends AppCompatActivity {
     private HashMap<String, ArrayList<Object>> storeCategory;
     private ArrayList<String> databaseCategory;
     private ArrayList<Object> XY;
+    private int firestoreSize;
+    private Handler mHandler;
 
     enum TOUCH_MODE {
         NONE,   // 터치 안했을 때
@@ -88,6 +91,8 @@ public class MapActivity extends AppCompatActivity {
         name = intent.getStringExtra("name"); // 마트 이름
         mode = intent.getStringExtra("mode"); // 모드
 
+        firestoreSize = 0;
+        mHandler = new Handler();
 
         // datastore, collection
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
@@ -100,17 +105,18 @@ public class MapActivity extends AppCompatActivity {
                     for (QueryDocumentSnapshot documentSnapshot : task.getResult()) {
 //                        Log.d("datastore", String.valueOf(documentSnapshot.getData()));
 //                        Log.d("datastore", documentSnapshot.getId());
-                        XY = new ArrayList<Object>();
+                        firestoreSize += 1;
+                        XY = new ArrayList<>();
                         XY.add(documentSnapshot.get("x"));
                         XY.add(documentSnapshot.get("y"));
                         storeCategory.put(documentSnapshot.getId(), XY);
                     }
-                    Log.d("datastore", String.valueOf(storeCategory));
                 } else {
                     Toast.makeText(getApplicationContext(), "firestore 실패", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+
 
 
         // realtime db
@@ -133,11 +139,18 @@ public class MapActivity extends AppCompatActivity {
         });
 
 
-        if (mode != null && mode.equals("1")) {
-            // navigation
-            dijk dijk = (com.example.MartBee.dijk) getApplicationContext();
-            dijk.test(start);
-        }
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mode != null && mode.equals("1")) {
+                    // navigation
+                    dijk dijk = (com.example.MartBee.dijk) getApplicationContext();
+                    dijk.test(start, firestoreSize);
+                }
+            }
+        }, 1000);
+
 
         // uri to bitmap
         FirebaseStorage storage = FirebaseStorage.getInstance();
@@ -282,12 +295,13 @@ public class MapActivity extends AppCompatActivity {
             for (String group : databaseCategory) {
                 if (storeCategory.containsKey(group)) {
                     ArrayList<Object> tempValue = storeCategory.get(group);
+                    assert tempValue != null;
                     String x = String.valueOf(tempValue.get(0));
                     String y = String.valueOf(tempValue.get(1));
-                    x = x.substring(1, x.length()-1);
-                    y = y.substring(1, y.length()-1);
+                    x = x.substring(1, x.length() - 1);
+                    y = y.substring(1, y.length() - 1);
 
-                    tempCanvas.drawBitmap(markerBitmap, Integer.parseInt(x)-30, Integer.parseInt(y)-30, null);
+                    tempCanvas.drawBitmap(markerBitmap, Integer.parseInt(x) - 30, Integer.parseInt(y) - 30, null);
 
                 }
             }
