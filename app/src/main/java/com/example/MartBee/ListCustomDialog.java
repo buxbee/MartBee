@@ -32,7 +32,7 @@ public class ListCustomDialog extends Dialog {
     private EditText editText;
     private Button saveBtn, closeBtn, deleteButton;
     ListView list;
-    DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference("message2");
+    DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference("user");
 
 
     public ListCustomDialog(@NonNull Context context, ListCustomDialogClickListener listCustomDialogClickListener) {
@@ -47,9 +47,9 @@ public class ListCustomDialog extends Dialog {
         setContentView(R.layout.list_custom_dialog);
 
         closeBtn = findViewById(R.id.closeBtn);
-        saveBtn = findViewById(R.id.saveBtn);
-        deleteButton=findViewById(R.id.delete);
-        editText=findViewById(R.id.listInput);
+//        saveBtn = findViewById(R.id.saveBtn);
+//        deleteButton=findViewById(R.id.delete);
+//        editText=findViewById(R.id.listInput);
 
         list=(ListView)findViewById(R.id.list);
         List<String> data=new ArrayList<>();
@@ -66,58 +66,56 @@ public class ListCustomDialog extends Dialog {
                     adapter.notifyDataSetChanged();
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
             }
         });
 
-        saveBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String data1=editText.getText().toString();
-                DatabaseReference conditionRef=mRootRef.push();
-                conditionRef.setValue(data1);
-                data.add(data1);
-                adapter.notifyDataSetChanged();
-                editText.setText(null);
-            }
-        });
-        deleteButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                adapter.notifyDataSetChanged();
-                int count, checked;
-                count= adapter.getCount();
-                if(count>0){
-                    checked=list.getCheckedItemPosition();
-                    if(checked>-1 && checked<count){
-                        String element=data.get(checked).toString();
-                        mRootRef.child(element).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-//                                Toast.makeText(ListCustomDialog., "삭제 성공", Toast.LENGTH_SHORT).show();
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                System.out.println("error: "+e.getMessage());
-//                                Toast.makeText(getApplicationContext(), "삭제 실패", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        data.remove(checked);
-                        list.clearChoices();
-                        adapter.notifyDataSetChanged();
-                    }
-                }
-            }
-        });
+//        saveBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                String data1=editText.getText().toString();
+//                DatabaseReference conditionRef=mRootRef.push();
+//                conditionRef.setValue(data1);
+//                data.add(data1);
+//                adapter.notifyDataSetChanged();
+//                editText.setText(null);
+//            }
+//        });
+//        deleteButton.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View v) {
+//                adapter.notifyDataSetChanged();
+//                int count, checked;
+//                count= adapter.getCount();
+//                if(count>0){
+//                    checked=list.getCheckedItemPosition();
+//                    if(checked>-1 && checked<count){
+//                        String element=data.get(checked).toString();
+//                        mRootRef.child(element).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+//                            @Override
+//                            public void onSuccess(Void aVoid) {
+////                                Toast.makeText(ListCustomDialog., "삭제 성공", Toast.LENGTH_SHORT).show();
+//                            }
+//                        }).addOnFailureListener(new OnFailureListener() {
+//                            @Override
+//                            public void onFailure(@NonNull Exception e) {
+//                                System.out.println("error: "+e.getMessage());
+////                                Toast.makeText(getApplicationContext(), "삭제 실패", Toast.LENGTH_SHORT).show();
+//                            }
+//                        });
+//                        data.remove(checked);
+//                        list.clearChoices();
+//                        adapter.notifyDataSetChanged();
+//                    }
+//                }
+//            }
+//        });
 
         closeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                listCustomDialogClickListener.onCloseClick();
                 dismiss();
             }
         });

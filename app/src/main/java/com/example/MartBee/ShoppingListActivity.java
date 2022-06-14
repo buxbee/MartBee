@@ -134,7 +134,6 @@ public class ShoppingListActivity extends AppCompatActivity {
                 CustomDialog customDialog = new CustomDialog(ShoppingListActivity.this, new CustomDialogClickListener() {
                     @Override
                     public void onPositiveClick(String floor, String startPoint, String mode) {
-                        Toast.makeText(getApplicationContext(), floor, Toast.LENGTH_SHORT).show();
 
                         Intent toMapIntent = new Intent(ShoppingListActivity.this, MapActivity.class);
                         toMapIntent.putExtra("name", name); // 마트명

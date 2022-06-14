@@ -1,14 +1,19 @@
 package com.example.MartBee;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -44,7 +49,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.FileNotFoundException;
-import java.lang.reflect.Array;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -55,10 +60,12 @@ public class MapActivity extends AppCompatActivity {
     private String floor, start, name, mode;
     private Intent intent;
     private HashMap<String, ArrayList<Object>> storeCategory;
-    private ArrayList<String> databaseCategory;
+    private ArrayList<String> databaseCategory, route;
     private ArrayList<Object> XY;
-    private int firestoreSize;
     private Handler mHandler;
+    ArrayList<Integer[]> crd;
+    Boolean flag = false;
+
 
     enum TOUCH_MODE {
         NONE,   // 터치 안했을 때
@@ -91,8 +98,9 @@ public class MapActivity extends AppCompatActivity {
         name = intent.getStringExtra("name"); // 마트 이름
         mode = intent.getStringExtra("mode"); // 모드
 
-        firestoreSize = 0;
         mHandler = new Handler();
+        route = new ArrayList<>();
+        crd = new ArrayList<>();
 
         // datastore, collection
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
@@ -105,7 +113,6 @@ public class MapActivity extends AppCompatActivity {
                     for (QueryDocumentSnapshot documentSnapshot : task.getResult()) {
 //                        Log.d("datastore", String.valueOf(documentSnapshot.getData()));
 //                        Log.d("datastore", documentSnapshot.getId());
-                        firestoreSize += 1;
                         XY = new ArrayList<>();
                         XY.add(documentSnapshot.get("x"));
                         XY.add(documentSnapshot.get("y"));
@@ -116,7 +123,6 @@ public class MapActivity extends AppCompatActivity {
                 }
             }
         });
-
 
 
         // realtime db
@@ -139,17 +145,26 @@ public class MapActivity extends AppCompatActivity {
         });
 
 
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
+        // navigation crd set
+        if (mode != null && mode.equals("1")) {
+            // navigation
+            dijk dijk = (com.example.MartBee.dijk) getApplicationContext();
+            dijk.test(start);
 
-                if (mode != null && mode.equals("1")) {
-                    // navigation
-                    dijk dijk = (com.example.MartBee.dijk) getApplicationContext();
-                    dijk.test(start, firestoreSize);
+            for (int i = 0; i < route.size(); i++) {
+                ArrayList<Object> tempValue = storeCategory.get(route.get(i));
+                if (tempValue != null) {
+                    String x = String.valueOf(tempValue.get(0));
+                    String y = String.valueOf(tempValue.get(1));
+                    x = x.substring(1, x.length() - 1);
+                    y = y.substring(1, y.length() - 1);
+
+                    crd.add(new Integer[]{Integer.parseInt(x), Integer.parseInt(y)});
                 }
             }
-        }, 1000);
+            Log.d("crd", String.valueOf(crd));
+            flag = true;
+        }
 
 
         // uri to bitmap
@@ -164,7 +179,7 @@ public class MapActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess(Uri uri) {
                     try {
-                        new MyView(MapActivity.this, uri);
+                        new MyView(MapActivity.this, uri, route);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -184,11 +199,10 @@ public class MapActivity extends AppCompatActivity {
         matrix = new Matrix();
         savedMatrix = new Matrix();
 
-
         imageView.setOnTouchListener(onTouch);
         imageView.setScaleType(ImageView.ScaleType.MATRIX); // 스케일 타입을 매트릭스로 해줘야 움직인다.
-        Log.d("MATRIX", "MATRIX");
 
+        // button
         showList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -203,6 +217,7 @@ public class MapActivity extends AppCompatActivity {
                 customDialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
 
                 customDialog.show();
+
             }
         });
 
@@ -216,7 +231,7 @@ public class MapActivity extends AppCompatActivity {
                     public void onSuccess(Uri uri) {
 //                        Glide.with(MapActivity.this).load(uri).into(imageView);
                         try {
-                            new MyView(MapActivity.this, uri);
+                            new MyView(MapActivity.this, uri, route);
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         }
@@ -241,7 +256,7 @@ public class MapActivity extends AppCompatActivity {
                     public void onSuccess(Uri uri) {
 //                        Glide.with(MapActivity.this).load(uri).into(imageView);
                         try {
-                            new MyView(MapActivity.this, uri);
+                            new MyView(MapActivity.this, uri, route);
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         }
@@ -262,9 +277,12 @@ public class MapActivity extends AppCompatActivity {
         private BitmapDrawable marker;
         private Bitmap tempBitmap, map;
         private Canvas tempCanvas;
+        Paint paint;
 
-        public MyView(Context context, Uri uri) throws FileNotFoundException {
+        public MyView(Context context, Uri uri, ArrayList<String> route) throws FileNotFoundException {
             super(context);
+
+            paint = new Paint();
 
             Glide.with(getApplicationContext()).asBitmap().load(uri).into(new CustomTarget<Bitmap>() {
                 @Override
@@ -272,8 +290,8 @@ public class MapActivity extends AppCompatActivity {
                     map = resource.copy(resource.getConfig(), true);
                     tempBitmap = Bitmap.createBitmap(resource.getWidth(), resource.getHeight(), resource.getConfig());
                     tempCanvas = new Canvas(tempBitmap);
-                    marker = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
 
+                    marker = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
                     draw(tempCanvas);
                 }
 
@@ -306,6 +324,15 @@ public class MapActivity extends AppCompatActivity {
                 }
             }
 
+            if (flag) {
+                paint.setStrokeWidth(2f);
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(Color.BLACK);
+                for (int i = 0; i < crd.size() - 1; i++) {
+                    canvas.drawLine(crd.get(i)[0], crd.get(i)[1], crd.get(i + 1)[0], crd.get(i + 1)[1], paint);
+                }
+            }
+
             //Attach the canvas to the ImageView
             tempCanvas.save();
             imageView.setImageBitmap(tempBitmap);
@@ -313,6 +340,15 @@ public class MapActivity extends AppCompatActivity {
             matrix.postTranslate(0, 100);
             matrix.postScale(2f, 2f);
             imageView.setImageMatrix(matrix);
+        }
+    }
+
+    public class Receiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            route = intent.getExtras().getStringArrayList("route");
+            MapActivity d = (MapActivity) context.getApplicationContext();
+            d.route = route;
         }
     }
 
