@@ -47,14 +47,6 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <RadioButton
-                android:id="@+id/elevator"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="엘리베이터" />
 
             <RadioButton
                 android:id="@+id/escalator"

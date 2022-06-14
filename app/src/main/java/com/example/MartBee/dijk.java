@@ -256,46 +256,46 @@ public class dijk extends Application {
         route = new ArrayList<>();
         handler = new Handler();
 
-        d.input("a", "b", 2);
-        d.input("a", "e", 5);
-        d.input("b", "c", 2);
-        d.input("b", "f", 5);
-        d.input("c", "d", 3);
-        d.input("c", "g", 5);
-        d.input("d", "i", 6);
-        d.input("e", "f", 2);
-        d.input("e", "j", 1);
-        d.input("f", "g", 2);
-        d.input("g", "o", 3);
-        d.input("g", "h", 2);
-        d.input("h", "i", 1);
-        d.input("i", "t", 3);
-        d.input("i", "r", 10);
-        d.input("t", "r", 11);
-        d.input("j", "k", 4);
-        d.input("k", "l", 5);
-        d.input("l", "m", 4);
-        d.input("o", "p", 2);
-        d.input("o", "n", 3);
-        d.input("n", "m", 3);
-        d.input("m", "q", 2);
-        d.input("q", "p", 8);
-        d.input("p", "r", 6);
-        d.input("r", "s", 5);
-//        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-//        CollectionReference dRef = firestore.collection("distance");
-//        dRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-//            @Override
-//            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-//                if (task.isSuccessful()) {
-//                    for (QueryDocumentSnapshot documentSnapshot : task.getResult()) {
-//                        for (String key : documentSnapshot.getData().keySet()) {
-//                            d.input(documentSnapshot.getId(), key, Integer.parseInt(String.valueOf(documentSnapshot.getData().get(key))));
-//                        }
-//                    }
-//                }
-//            }
-//        });
+//        d.input("a", "b", 2);
+//        d.input("a", "e", 5);
+//        d.input("b", "c", 2);
+//        d.input("b", "f", 5);
+//        d.input("c", "d", 3);
+//        d.input("c", "g", 5);
+//        d.input("d", "i", 6);
+//        d.input("e", "f", 2);
+//        d.input("e", "j", 1);
+//        d.input("f", "g", 2);
+//        d.input("g", "o", 3);
+//        d.input("g", "h", 2);
+//        d.input("h", "i", 1);
+//        d.input("i", "t", 3);
+//        d.input("i", "r", 10);
+//        d.input("t", "r", 11);
+//        d.input("j", "k", 4);
+//        d.input("k", "l", 5);
+//        d.input("l", "m", 4);
+//        d.input("o", "p", 2);
+//        d.input("o", "n", 3);
+//        d.input("n", "m", 3);
+//        d.input("m", "q", 2);
+//        d.input("q", "p", 8);
+//        d.input("p", "r", 6);
+//        d.input("r", "s", 5);
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        CollectionReference dRef = firestore.collection("distance");
+        dRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot documentSnapshot : task.getResult()) {
+                        for (String key : documentSnapshot.getData().keySet()) {
+                            d.input(documentSnapshot.getId(), key, Integer.parseInt(String.valueOf(documentSnapshot.getData().get(key))));
+                        }
+                    }
+                }
+            }
+        });
 
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -306,6 +306,7 @@ public class dijk extends Application {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     list.add(String.valueOf(snapshot.getValue()));
                 }
+                Log.d("list", String.valueOf(list));
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
@@ -316,10 +317,13 @@ public class dijk extends Application {
             @Override
             public void run() {
                 d.reArray(list);
-                Log.d("route dijk", String.valueOf(route));
+                returnRoute();
             }
         }, 400);
-        Log.d("return", "return");
+    }
+
+    public ArrayList<String> returnRoute(){
+        return route;
     }
 
     class Dijkstra {
@@ -395,6 +399,7 @@ public class dijk extends Application {
             }
 
             Log.d("reArray", "reArray");
+
 
         }
 

@@ -44,9 +44,6 @@ public class CustomDialog extends Dialog {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 switch (checkedId) {
-                    case R.id.elevator:
-                        startPoint = "엘리베이터";
-                        break;
                     case R.id.escalator:
                         startPoint = "에스컬레이터(up)";
                         break;

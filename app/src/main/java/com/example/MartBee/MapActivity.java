@@ -1,5 +1,6 @@
 package com.example.MartBee;
 
+import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -51,6 +52,8 @@ import com.google.firebase.storage.StorageReference;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class MapActivity extends AppCompatActivity {
@@ -60,12 +63,12 @@ public class MapActivity extends AppCompatActivity {
     private String floor, start, name, mode;
     private Intent intent;
     private HashMap<String, ArrayList<Object>> storeCategory;
-    private ArrayList<String> databaseCategory, route;
+    private ArrayList<String> databaseCategory;
     private ArrayList<Object> XY;
     private Handler mHandler;
     ArrayList<Integer[]> crd;
-    Boolean flag = false;
-
+    public ArrayList<String> route;
+    ArrayList<String> list;
 
     enum TOUCH_MODE {
         NONE,   // 터치 안했을 때
@@ -101,6 +104,7 @@ public class MapActivity extends AppCompatActivity {
         mHandler = new Handler();
         route = new ArrayList<>();
         crd = new ArrayList<>();
+        list = new ArrayList<>();
 
         // datastore, collection
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
@@ -135,6 +139,8 @@ public class MapActivity extends AppCompatActivity {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
 //                    Log.d("data", String.valueOf(snapshot.getValue()));
                     databaseCategory.add(String.valueOf(snapshot.getValue()));
+                    list.add(String.valueOf(snapshot.getValue()));
+
                 }
             }
 
@@ -144,27 +150,32 @@ public class MapActivity extends AppCompatActivity {
             }
         });
 
+        new dijk().test(start);
 
         // navigation crd set
-        if (mode != null && mode.equals("1")) {
-            // navigation
-            dijk dijk = (com.example.MartBee.dijk) getApplicationContext();
-            dijk.test(start);
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mode != null && mode.equals("1")) {
+                    // navigation
 
-            for (int i = 0; i < route.size(); i++) {
-                ArrayList<Object> tempValue = storeCategory.get(route.get(i));
-                if (tempValue != null) {
-                    String x = String.valueOf(tempValue.get(0));
-                    String y = String.valueOf(tempValue.get(1));
-                    x = x.substring(1, x.length() - 1);
-                    y = y.substring(1, y.length() - 1);
 
-                    crd.add(new Integer[]{Integer.parseInt(x), Integer.parseInt(y)});
+                    for (int i = 0; i < route.size(); i++) {
+//                        Log.d("get", route.get(i));
+                        ArrayList<Object> tempValue = storeCategory.get(route.get(i));
+
+                        if (tempValue != null) {
+                            String x = String.valueOf(tempValue.get(0));
+                            String y = String.valueOf(tempValue.get(1));
+                            x = x.substring(1, x.length() - 1);
+                            y = y.substring(1, y.length() - 1);
+
+                            crd.add(new Integer[]{Integer.parseInt(x), Integer.parseInt(y)});
+                        }
+                    }
                 }
             }
-            Log.d("crd", String.valueOf(crd));
-            flag = true;
-        }
+        }, 500);
 
 
         // uri to bitmap
@@ -185,7 +196,6 @@ public class MapActivity extends AppCompatActivity {
                     }
 //                    imageView.setImageURI(uri);
 //                    Glide.with(MapActivity.this).load(uri).into(imageView);
-                    Log.d("uri", String.valueOf(uri));
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
@@ -265,7 +275,7 @@ public class MapActivity extends AppCompatActivity {
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(), "이미지 로딩에 실패하였습니다", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "아직 준비되지 않은 마트입니다.", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -273,8 +283,8 @@ public class MapActivity extends AppCompatActivity {
 
     }
 
-    public class MyView extends View {
-        private BitmapDrawable marker;
+    public class MyView extends View{
+        private BitmapDrawable marker, arrow;
         private Bitmap tempBitmap, map;
         private Canvas tempCanvas;
         Paint paint;
@@ -292,7 +302,9 @@ public class MapActivity extends AppCompatActivity {
                     tempCanvas = new Canvas(tempBitmap);
 
                     marker = (BitmapDrawable) getResources().getDrawable(R.drawable.marker2);
+                    arrow = (BitmapDrawable) getResources().getDrawable(R.drawable.arrow);
                     draw(tempCanvas);
+
                 }
 
                 @Override
@@ -308,6 +320,18 @@ public class MapActivity extends AppCompatActivity {
 
             tempCanvas.drawBitmap(map, 0, 0, null);
             Bitmap markerBitmap = marker.getBitmap();
+            Bitmap arrowBitmap = arrow.getBitmap();
+
+
+            if (mode != null && mode.equals("1")) {
+                paint.setStrokeWidth(5f);
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(Color.BLACK);
+                for (int i = 0; i < crd.size() - 1; i++) {
+                    canvas.drawLine(crd.get(i)[0], crd.get(i)[1], crd.get(i + 1)[0], crd.get(i + 1)[1], paint);
+
+                }
+            }
 
             //Draw marker
             for (String group : databaseCategory) {
@@ -322,15 +346,15 @@ public class MapActivity extends AppCompatActivity {
                     tempCanvas.drawBitmap(markerBitmap, Integer.parseInt(x) - 30, Integer.parseInt(y) - 30, null);
 
                 }
-            }
+//                ArrayList<Object> tempValue = storeCategory.get(start);
+//                assert tempValue != null;
+//                String x = String.valueOf(tempValue.get(0));
+//                String y = String.valueOf(tempValue.get(1));
+//                x = x.substring(1, x.length() - 1);
+//                y = y.substring(1, y.length() - 1);
+//
+//                tempCanvas.drawBitmap(arrowBitmap, Integer.parseInt(x) - 30, Integer.parseInt(y) - 30, null);
 
-            if (flag) {
-                paint.setStrokeWidth(2f);
-                paint.setStyle(Paint.Style.FILL);
-                paint.setColor(Color.BLACK);
-                for (int i = 0; i < crd.size() - 1; i++) {
-                    canvas.drawLine(crd.get(i)[0], crd.get(i)[1], crd.get(i + 1)[0], crd.get(i + 1)[1], paint);
-                }
             }
 
             //Attach the canvas to the ImageView
@@ -340,15 +364,243 @@ public class MapActivity extends AppCompatActivity {
             matrix.postTranslate(0, 100);
             matrix.postScale(2f, 2f);
             imageView.setImageMatrix(matrix);
+
         }
+
     }
 
-    public class Receiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            route = intent.getExtras().getStringArrayList("route");
-            MapActivity d = (MapActivity) context.getApplicationContext();
-            d.route = route;
+    public class dijk extends Application {
+
+        String start;
+        Handler handler;
+
+
+        public void test(String startPoint) {
+
+            start = startPoint;
+            Dijkstra d = new Dijkstra(20);
+            handler = new Handler();
+
+            d.input("축산", "수산", 2);
+            d.input("축산", "건해산물", 5);
+            d.input("수산", "과일", 2);
+            d.input("수산", "스테이크", 5);
+            d.input("과일", "계란", 3);
+            d.input("과일", "해산물", 5);
+            d.input("계란", "매장입구", 6);
+            d.input("건해산물", "스테이크", 2);
+            d.input("건해산물", "베이크랩", 1);
+            d.input("스테이크", "해산물", 2);
+            d.input("해산물", "곡물", 3);
+            d.input("해산물", "해벗", 2);
+            d.input("해벗", "매장입구", 1);
+            d.input("매장입구", "에스컬레이터(up)", 3);
+            d.input("매장입구", "에스컬레이터(down)", 10);
+            d.input("에스컬레이터(up)", "r", 11);
+            d.input("베이크랩", "와인", 4);
+            d.input("와인", "냉동식품", 5);
+            d.input("냉동식품", "행사장", 4);
+            d.input("곡물", "계산대", 2);
+            d.input("곡물", "조미인스턴트", 3);
+            d.input("조미인스턴트", "행사장", 3);
+            d.input("행사장", "과자", 2);
+            d.input("과자", "계산대", 8);
+            d.input("계산대", "에스컬레이터(down)", 6);
+            d.input("에스컬레이터(down)", "화장실", 5);
+//            FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+//            CollectionReference dRef = firestore.collection("distance");
+//            dRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//                @Override
+//                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                    if (task.isSuccessful()) {
+//                        for (QueryDocumentSnapshot documentSnapshot : task.getResult()) {
+//                            for (String key : documentSnapshot.getData().keySet()) {
+//                                d.input(documentSnapshot.getId(), key, Integer.parseInt(String.valueOf(documentSnapshot.getData().get(key))));
+//                            }
+//                        }
+//                    }
+//                }
+//            });
+
+
+//            FirebaseDatabase database = FirebaseDatabase.getInstance();
+//            DatabaseReference mRef = database.getReference("user");
+//            mRef.addValueEventListener(new ValueEventListener() {
+//                @Override
+//                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+//                        list.add(String.valueOf(snapshot.getValue()));
+//                    }
+//                    Log.d("list", String.valueOf(list));
+//                }
+//                @Override
+//                public void onCancelled(@NonNull DatabaseError error) {
+//                }
+//            });
+
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    d.reArray(list);
+                }
+            }, 400);
+        }
+
+        public ArrayList<String> returnRoute() {
+            return route;
+        }
+
+        class Dijkstra {
+
+            private int n;
+            private int[][] weight;
+            private String[] saveRoute, items;
+            private String[] vertex = {
+                    "매장입구",
+                    "해벗",
+                    "해산물",
+                    "계란",
+                    "과일",
+                    "수산",
+                    "스테이크",
+                    "건해산물",
+                    "축산",
+                    "베이크랩",
+                    "와인",
+                    "냉동식품",
+                    "곡물",
+                    "조미인스턴트",
+                    "행사장",
+                    "계산대",
+                    "과자",
+                    "에스컬레이터(down)",
+                    "화장실",
+                    "에스컬레이터(up)"};
+
+
+            public Dijkstra(int n) {
+                super();
+                this.n = n;
+                weight = new int[n][n];
+                saveRoute = new String[n];
+            }
+
+            public int stringToInt(String s) {
+                int x = 0;
+                for (int i = 0; i < vertex.length; i++) {
+                    if (vertex[i].equals(s)) x = i;
+
+                }
+                return x;
+            }
+
+            public void reArray(ArrayList<String> r) {
+
+                int[] array = new int[r.size()];
+
+                for (int i = 0; i < r.size(); i++) {
+                    for (int j = 0; j < vertex.length; j++) {
+                        if (r.get(i).equals(vertex[j])) {
+                            array[i] = j;
+
+                        }
+                    }
+                }
+                Arrays.sort(array);
+                if (start.equals("매장입구")) {
+                    algorithm("매장입구", vertex[array[0]]);
+
+                    for (int i = 0; i < array.length - 1; i++) {
+                        algorithm(vertex[array[i]], vertex[array[i + 1]]);
+                    }
+                } else if (start.equals("에스컬레이터(up)")) {
+                    algorithm("에스컬레이터(up)", vertex[array[0]]);
+                    for (int i = 0; i < array.length - 1; i++) {
+                        algorithm(vertex[array[i]], vertex[array[i + 1]]);
+                    }
+
+                }
+            }
+
+            public void input(String v1, String v2, int w) {
+                int x1 = stringToInt(v1);
+                int x2 = stringToInt(v2);
+                weight[x1][x2] = w;
+                weight[x2][x1] = w;
+            }
+
+            public void algorithm(String a, String k) {
+                boolean[] visited = new boolean[n];
+                int[] distance = new int[n];
+
+                for (int i = 0; i < n; i++) {
+                    distance[i] = Integer.MAX_VALUE;
+                }
+
+
+                int x = 0;
+                for (int i = 0; i < vertex.length; i++) {
+                    if (a.equals(vertex[i]))
+                        x = i;
+
+                }
+
+                distance[x] = 0;
+                visited[x] = true;
+                saveRoute[x] = vertex[x];
+
+                int y = stringToInt(k);
+
+                for (int i = 0; i < n; i++) {
+                    if (!visited[i] && weight[x][i] != 0) {
+                        distance[i] = weight[x][i];
+                        saveRoute[i] = vertex[x];
+                    }
+                }
+
+                for (int i = 0; i < n - 1; i++) {
+                    int minDistance = Integer.MAX_VALUE;
+                    int minVertex = -1;
+                    for (int j = 0; j < n; j++) {
+                        if (!visited[j] && distance[j] != Integer.MAX_VALUE) {
+                            if (distance[j] < minDistance) {
+                                minDistance = distance[j];
+                                minVertex = j;
+                            }
+                        }
+                    }
+                    visited[minVertex] = true;
+                    for (int j = 0; j < n; j++) {
+                        if (!visited[j] && weight[minVertex][j] != 0) {
+                            if (distance[j] > distance[minVertex] + weight[minVertex][j]) {
+                                distance[j] = distance[minVertex] + weight[minVertex][j];
+                                saveRoute[j] = vertex[minVertex];
+                            }
+                        }
+                    }
+                }
+
+
+                for (int i = 0; i < n; i++) {
+                    if (k.equals(vertex[i])) {
+                        String tempRoute = "";
+
+                        int index = i;
+                        while (!saveRoute[index].equals(vertex[index])) {
+                            tempRoute = tempRoute + (saveRoute[index] + " ");
+                            index = stringToInt(saveRoute[index]);
+                        }
+
+                        items = tempRoute.split(" ");
+
+                        Collections.reverse(Arrays.asList(items));
+
+                        route.addAll(Arrays.asList(items));
+                        route.add(vertex[i]);
+                    }
+                }
+//                route = new ArrayList<>(Arrays.asList(items));
+            }
         }
     }
 
